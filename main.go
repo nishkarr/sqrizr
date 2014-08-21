@@ -6,9 +6,10 @@ import (
 	"os"
 
 	"image"
-//	"image/draw"
+	"image/color"
+	"image/draw"
 	_ "image/jpeg"
-	_ "image/png"
+	"image/png"
 	_ "image/gif"
 
 )
@@ -17,38 +18,25 @@ var (
 	srcImagePath string
 )
 
-type Orientation int
-
-const (
-	Portrait Orientation = iota
-	Landscape
-	Square
-)
-
-func (o Orientation) String() string {
-	switch(o){
-		case Portrait:
-			return "Portrait"
-		case Landscape:
-			return "Landscape"
-		case Square:
-			return "Square"
-		default:
-			return "UNKNOWN"
+func determineOrientation(rect image.Rectangle) (orientation string, longestSide int, startingPoint image.Point) {
+	if rect.Dx() > rect.Dy(){
+		return "Landscape", rect.Dx(), image.Pt(0, (rect.Dx() - rect.Dy()) / -2) 
+	} else { 
+		if rect.Dx() < rect.Dy() {
+			return "Portrait", rect.Dy(), image.Pt((rect.Dy() - rect.Dx()) / -2, 0)
+		} else {
+			return "Square", rect.Dx(), image.Pt(0,0)
+		}
 	}
 }
 
-
-func determineOrientation(rect image.Rectangle) Orientation {
-	if rect.Dx() > rect.Dy(){
-		return Landscape
-	} else if rect.Dx() < rect.Dy() {
-				return Portrait
-			} else {
-				return Square
-			}
+func createDstSquareImg(sideLength int) *image.RGBA {
+	img := image.NewRGBA(image.Rect(0,0, sideLength, sideLength))
+	col := color.RGBA{5, 5, 5, 255}
+	draw.Draw(img, img.Bounds(), &image.Uniform{col}, image.ZP, draw.Src)
+	return img
 }
- 
+
 func main(){
 	flag.StringVar(&srcImagePath, "src", "", "Source image path")
 	flag.Parse()
@@ -60,10 +48,10 @@ func main(){
 	}
 
 	var (
-		err 				error
-		srcImageFile 	*os.File
-		src 				image.Image
-		format			string
+		err 								error
+		srcImageFile, outputFile 	*os.File
+		src 								image.Image
+		format							string
 	)
 
 	srcImageFile, err = os.Open(srcImagePath)
@@ -75,9 +63,24 @@ func main(){
 
 	src, format, err = image.Decode(srcImageFile)
 
-	srcBounds := src.Bounds()
-	orientation := determineOrientation(srcBounds)
+	orientation, longestSide, sp := determineOrientation(src.Bounds())
 
-	fmt.Println(fmt.Sprintf("processing file: %s\nformat: %s\ndimensions: %v (%v)\n", srcImagePath, format, srcBounds, orientation))
+	dst := createDstSquareImg(longestSide);
+
+	draw.Draw(dst, dst.Bounds(), src, sp, draw.Src)
+
+	outputFile, err = os.Create("output.png")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer outputFile.Close()
+
+	err = png.Encode(outputFile, dst)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(fmt.Sprintf("processing file: %s\nformat: %s\ndimensions: %v (%s)\nsquare side: %d", srcImagePath, format, src.Bounds(), orientation, longestSide))
 }
 
