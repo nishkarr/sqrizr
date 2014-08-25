@@ -4,8 +4,7 @@ import (
 	"net/http"
 	"io"
 	"log"
-	//"sqrizr/sqrizrlib"
-	//"mime/multipart"
+	"sqrizr/sqrizrlib"
 )
 
 var indexHtml = `
@@ -46,7 +45,13 @@ func indexHandler(w http.ResponseWriter, r *http.Request){
 			return
 		}
 		defer file.Close()
-		io.WriteString(w, "Uploaded: " + fileHeader.Filename)
+
+		_, _, err = sqrizrlib.Sqrize(file, w)
+		if err != nil {
+			io.WriteString(w, "Error decoding: " + fileHeader.Filename + ": " + err.Error())	
+		} else{
+			w.Header().Set("Content-Type", "image/png")	
+		}
 	}
 }
 

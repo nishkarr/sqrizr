@@ -37,6 +37,9 @@ func Sqrize(srcImageFile io.Reader, outputFile io.Writer) (format, orientation s
 	)
 
 	src, format, err = image.Decode(srcImageFile)
+	if err != nil {
+		return
+	}
 
 	orientation, longestSide, sp := determineOrientation(src.Bounds())
 
