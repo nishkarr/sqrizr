@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"io"
 	"log"
-	"sqrizr/sqrizrlib"
+	"github.com/nishkarr/sqrizr/sqrizrlib"
 )
 
 var indexHtml = `

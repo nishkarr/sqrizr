@@ -5,7 +5,7 @@ import (
 	"flag"
 	"os"
 
-	"sqrizr/sqrizrlib"
+	"github.com/nishkarr/sqrizr/sqrizrlib"
 )
 
 var (
