@@ -4,6 +4,9 @@ import (
 	"net/http"
 	"io"
 	"log"
+	"fmt"
+	"strings"
+
 	"github.com/nishkarr/sqrizr/sqrizrlib"
 )
 
@@ -12,6 +15,7 @@ var indexHtml = `
 <html>
 	<head>
 		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>SQRIZR (square-izer)</title>
 		<style>
 			body {
@@ -46,13 +50,29 @@ func indexHandler(w http.ResponseWriter, r *http.Request){
 		}
 		defer file.Close()
 
-		_, _, err = sqrizrlib.Sqrize(file, w)
+		// this is messy, we need to know if the processing completed successfully so we 
+		// can set the request headers. Request headers must be set before writing to ResponseWriter!
+
+		headers := w.Header()
+		headers.Set("Content-Type", "image/png")
+		headers.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="sqr_%s"`, convertFileName(fileHeader.Filename)))
+
+		_, _, err = sqrizrlib.Sqrize(file, w) // we rely on the sqrizrlib not writing anything to w on failure!
 		if err != nil {
+			headers.Set("Content-Type", "text/plain")
+			headers.Del("Content-Disposition")
 			io.WriteString(w, "Error decoding: " + fileHeader.Filename + ": " + err.Error())	
 		} else{
-			w.Header().Set("Content-Type", "image/png")	
+			//headers := w.Header()
+			//headers.Set("Content-Type", "image/jpg")
+			//headers.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="sqr_%s"`, fileHeader.Filename))
 		}
 	}
+}
+
+func convertFileName(file string) string {
+	r := strings.NewReplacer(".jpg", ".png", ".gif", ".png")
+	return r.Replace(file)
 }
 
 func main (){
