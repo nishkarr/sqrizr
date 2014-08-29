@@ -13,31 +13,50 @@ import (
 var indexHtml = `
 <!doctype html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>SQRIZR (square-izer)</title>
-		<style>
-			body {
-				padding: 0;
-				margin: 0;
-				font-size: 14px;
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>SQRIZR (square-izer)</title>
+	<style>
+		body {
+			padding: 0;
+			margin: 0;
+			background-color: #8D6CE8;
+			font-family: Garamond, serif;
+		}
+		#app {
+			width: 300px;
+			margin: auto;
+		}
+		header{
+			font-size: 2em;
+			color: #FFECA6;
+		}
+		#blurb {
+			color: #FAEAD0;
+		}
+		@media (max-width: 400px) {
+			#app {
+				width: 80%;
+				margin: auto;
 			}
-
-			header{
-				font-size: 150%;
+			input[type="submit"]{
+				margin-top: 20px;
 			}
-		</style>
-	</head>
-	<body>
-		<header>Sqrizr - turn your images into squares!</header>
+		}
+	</style>
+</head>
+<body>
+	<div id="app">
+		<header>Sqrizr</header>
+		<div id="blurb">turn your images into squares!</div>
 		<form method="post" enctype="multipart/form-data">
-			<label for="image">Choose an image:</label> <input type="file" name="image">
-			<input type="submit" name="submit">
+			<input type="file" name="image">
+			<input type="submit" name="submit" value="GO">
 		</form>
-	</body>
-</html>
-`
+	</div>
+</body>
+</html>`
 
 func indexHandler(w http.ResponseWriter, r *http.Request){
 	if r.Method == "GET" {
